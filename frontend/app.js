@@ -1,32 +1,53 @@
 const API_URL = "/api";
 
 async function fetchTasks() {
-  const res = await fetch(`${API_URL}/tasks`);
-  const data = await res.json();
+  try {
+    const res = await fetch(`${API_URL}/tasks`);
 
-  const list = document.getElementById("taskList");
-  list.innerHTML = "";
+    if (!res.ok) {
+      throw new Error(`Failed to fetch tasks: ${res.status}`);
+    }
 
-  data.forEach(task => {
-    const li = document.createElement("li");
-    li.innerText = task.title;
-    list.appendChild(li);
-  });
+    const data = await res.json();
+
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+
+    data.forEach(task => {
+      const li = document.createElement("li");
+      li.innerText = task.title;
+      list.appendChild(li);
+    });
+
+  } catch (err) {
+    console.error("Error fetching tasks:", err);
+  }
 }
 
 async function addTask() {
   const input = document.getElementById("taskInput");
 
-  await fetch(`${API_URL}/tasks`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ title: input.value })
-  });
+  if (!input.value.trim()) return;
 
-  input.value = "";
-  fetchTasks();
+  try {
+    const res = await fetch(`${API_URL}/tasks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ title: input.value })
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to add task: ${res.status}`);
+    }
+
+    input.value = "";
+    fetchTasks();
+
+  } catch (err) {
+    console.error("Error adding task:", err);
+  }
 }
 
 fetchTasks();
